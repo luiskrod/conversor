@@ -78,7 +78,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--ui);
     <button id="rateBtn" type="button" aria-label="Cambiar tasa"><small>1 USD =</small><b id="rateTxt">3.160</b><small>COP ✎</small></button>
   </div>
 
-  <div class="pair">
+  <div class="pair" id="pair">
     <div class="row in"><div class="code" id="inCode">COP<span>Pesos</span></div><div class="amt" id="inAmt">50.000</div></div>
     <button class="swap" id="swap" type="button" aria-label="Invertir">⇅</button>
     <div class="row out" id="outRow" title="Toca para copiar"><div class="code" id="outCode">USD<span>Dólares</span></div><div class="amt" id="outAmt">15,82</div></div>
@@ -146,15 +146,23 @@ body{background:var(--bg);color:var(--ink);font-family:var(--ui);
     }
     st.raw=r;render();
   }
-  $('pad').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;press(b.dataset.k||b.textContent)});
-  $('chips').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;st.raw=b.dataset.v;render()});
-  $('swap').addEventListener('click',function(){
+  // Toque directo: responde al instante y evita que iOS lo tome como doble toque (zoom)
+  function tap(el,fn){
+    el.addEventListener('touchend',function(e){var b=e.target.closest('button');if(!b||!el.contains(b))return;e.preventDefault();fn(b)},{passive:false});
+    el.addEventListener('click',function(e){var b=e.target.closest('button');if(!b||!el.contains(b))return;fn(b)});
+  }
+  tap($('pad'),function(b){press(b.dataset.k||b.textContent)});
+  document.addEventListener('dblclick',function(e){e.preventDefault()},{passive:false});
+  document.addEventListener('gesturestart',function(e){e.preventDefault()},{passive:false});
+  tap($('chips'),function(b){st.raw=b.dataset.v;render()});
+  tap($('pair'),function(b){if(b.id==='swap')doSwap()});
+  function doSwap(){
     var v=parseFloat(st.raw||'0')||0,cop=st.dir==='cop';
     var r=cop?v/st.rate:v*st.rate;
     st.dir=cop?'usd':'cop';
     st.raw=r?(cop?String(Math.round(r*100)/100):String(Math.round(r))):'';
     save();render();
-  });
+  }
   var hintT;
   $('outRow').addEventListener('click',function(){
     var t=$('outAmt').textContent.replace(/[^\d,]/g,'');
@@ -189,4 +197,3 @@ body{background:var(--bg);color:var(--ink);font-family:var(--ui);
 </script>
 
 </body></html>
-<script>document.addEventListener('dblclick',function(e){e.preventDefault()},{passive:false});</script>
