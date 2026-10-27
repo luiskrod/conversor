@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;height:100%}body{margin:0}[hidden]{display:none!important}</style>
+<title>Conversor COP USD</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0f3d3a">
+<style>
+/* Layout: one-screen calculator — rate strip, two currency rows with swap, keypad pinned to bottom */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --ink:#14201e; --muted:#5e6b68; --line:#d9e0dc;
+  --accent:#0f6b5f; --accent-ink:#ffffff; --key:#e7ece9; --key-press:#d3dbd7;
+  --num:ui-monospace,"SF Mono","Roboto Mono",Menlo,Consolas,monospace;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1514; --surface:#16201e; --ink:#e8efec; --muted:#93a29e; --line:#26332f;
+  --accent:#3fbfa9; --accent-ink:#06211d; --key:#1d2926; --key-press:#2a3a36; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1514; --surface:#16201e; --ink:#e8efec; --muted:#93a29e; --line:#26332f;
+  --accent:#3fbfa9; --accent-ink:#06211d; --key:#1d2926; --key-press:#2a3a36; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.app{max-width:440px;margin:0 auto;height:100%;display:flex;flex-direction:column;gap:12px;padding-block:12px}
+.rate{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted)}
+.rate button{all:unset;cursor:pointer;display:flex;align-items:baseline;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink)}
+.rate button:focus-visible{outline:2px solid var(--accent)}
+.rate b{font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:600}
+.rate small{color:var(--muted);font-size:11px}
+.pair{background:var(--surface);border:1px solid var(--line);border-radius:18px;position:relative}
+.row{padding:16px 18px;display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px}
+.row+.row{border-top:1px solid var(--line)}
+.code{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.code span{font-size:11px;font-weight:500;letter-spacing:0}
+.amt{font-family:var(--num);font-variant-numeric:tabular-nums;text-align:right;min-width:0;overflow-wrap:anywhere;line-height:1.1}
+.in .amt{font-size:clamp(28px,9vw,40px);font-weight:600}
+.in .amt::after{content:"";display:inline-block;width:2px;height:.9em;background:var(--accent);margin-left:3px;vertical-align:-.1em;animation:b 1s steps(1) infinite}
+@keyframes b{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.in .amt::after{animation:none}}
+.out{cursor:pointer}
+.out .amt{font-size:clamp(24px,7.5vw,34px);color:var(--accent);font-weight:600}
+.swap{all:unset;cursor:pointer;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;
+  background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:18px;box-shadow:0 0 0 4px var(--surface)}
+.swap:focus-visible{outline:2px solid var(--ink)}
+.hint{text-align:center;font-size:12px;color:var(--muted);min-height:16px}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.chips button{all:unset;cursor:pointer;flex:0 0 auto;padding:7px 12px;border-radius:999px;background:var(--key);font-family:var(--num);font-size:13px;font-variant-numeric:tabular-nums}
+.chips button:active{background:var(--key-press)}
+.pad{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pad button{all:unset;cursor:pointer;text-align:center;background:var(--key);border-radius:14px;padding:14px 0;font-family:var(--num);font-size:24px;font-weight:500}
+.pad button:active{background:var(--key-press)}
+.pad button:focus-visible{outline:2px solid var(--accent)}
+.pad .fn{font-family:var(--ui);font-size:15px;color:var(--muted)}
+.sheet{position:fixed;inset:0;background:rgb(0 0 0 / .45);display:grid;align-items:end;z-index:5}
+.sheet>div{background:var(--surface);border-radius:20px 20px 0 0;display:flex;flex-direction:column;gap:12px;
+  padding-block:20px calc(20px + env(safe-area-inset-bottom,0px));
+  padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.sheet h2{margin:0;font-size:17px}
+.sheet p{margin:0;font-size:13px;color:var(--muted);line-height:1.45}
+.sheet input{font:600 26px var(--num);padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);user-select:text;-webkit-user-select:text;width:100%;box-sizing:border-box}
+.sheet .acts{display:flex;gap:8px}
+.sheet .acts button{all:unset;cursor:pointer;flex:1;text-align:center;padding:13px;border-radius:12px;font-weight:600;background:var(--key)}
+.sheet .acts .ok{background:var(--accent);color:var(--accent-ink)}
+</style>
+
+</head><body>
+<div class="app">
+  <div class="rate">
+    <span>Tasa</span>
+    <button id="rateBtn" type="button" aria-label="Cambiar tasa"><small>1 USD =</small><b id="rateTxt">3.160</b><small>COP ✎</small></button>
+  </div>
+
+  <div class="pair">
+    <div class="row in"><div class="code" id="inCode">COP<span>Pesos</span></div><div class="amt" id="inAmt">50.000</div></div>
+    <button class="swap" id="swap" type="button" aria-label="Invertir">⇅</button>
+    <div class="row out" id="outRow" title="Toca para copiar"><div class="code" id="outCode">USD<span>Dólares</span></div><div class="amt" id="outAmt">15,82</div></div>
+  </div>
+  <div class="hint" id="hint">Toca el resultado para copiarlo</div>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="pad" id="pad">
+    <button>1</button><button>2</button><button>3</button>
+    <button>4</button><button>5</button><button>6</button>
+    <button>7</button><button>8</button><button>9</button>
+    <button data-k="dec">,</button><button>0</button><button data-k="000">000</button>
+    <button data-k="clr" class="fn">Borrar todo</button><button data-k="00">00</button><button data-k="del" class="fn" aria-label="Borrar">⌫</button>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div>
+    <h2>Tasa de cambio</h2>
+    <p>Pesos por 1 dólar. Pon la TRM del día o la tasa de tu casa de cambio. Se guarda en este teléfono.</p>
+    <input id="rateIn" type="text" inputmode="decimal" autocomplete="off" aria-label="Pesos por dólar">
+    <div class="acts"><button id="cancel" type="button">Cancelar</button><button id="save" class="ok" type="button">Guardar</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var KEY='copusd.v1';
+  var st={rate:3160,dir:'cop',raw:'50000'};
+  try{var s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.rate>0){st.rate=s.rate;st.dir=s.dir==='usd'?'usd':'cop'}}catch(e){}
+  if(st.dir==='usd')st.raw='20';
+  function save(){try{localStorage.setItem(KEY,JSON.stringify({rate:st.rate,dir:st.dir}))}catch(e){}}
+
+  var $=function(id){return document.getElementById(id)};
+  var fmt=function(n,d){return n.toLocaleString('es-CO',{minimumFractionDigits:d,maximumFractionDigits:d})};
+
+  function showRaw(raw){
+    var p=raw.split('.'),i=p[0]||'0';
+    var s=Number(i).toLocaleString('es-CO',{maximumFractionDigits:0});
+    return p.length>1?s+','+p[1]:s;
+  }
+  function render(){
+    var cop=st.dir==='cop',v=parseFloat(st.raw||'0')||0;
+    $('inCode').innerHTML=cop?'COP<span>Pesos</span>':'USD<span>Dólares</span>';
+    $('outCode').innerHTML=cop?'USD<span>Dólares</span>':'COP<span>Pesos</span>';
+    $('inAmt').textContent=(cop?'$':'US$')+showRaw(st.raw||'0');
+    var r=cop?v/st.rate:v*st.rate;
+    $('outAmt').textContent=cop?'US$'+fmt(r,2):'$'+fmt(Math.round(r),0);
+    $('rateTxt').textContent=fmt(st.rate,st.rate%1?2:0);
+    var list=cop?[10000,20000,50000,100000,200000,500000]:[1,5,10,20,50,100];
+    $('chips').innerHTML=list.map(function(n){return '<button type="button" data-v="'+n+'">'+(cop?'$':'US$')+fmt(n,0)+'</button>'}).join('');
+  }
+  function press(k){
+    var r=st.raw;
+    if(k==='del')r=r.slice(0,-1);
+    else if(k==='clr')r='';
+    else if(k==='dec'){if(r.indexOf('.')<0)r=(r||'0')+'.'}
+    else{
+      var p=r.split('.');
+      if(p.length>1&&p[1].length+k.length>2)return;
+      if(p[0].replace(/^0+/,'').length+k.length>12&&p.length<2)return;
+      r=(r==='0'?'':r)+k;
+      if(/^0+$/.test(r))r='0';
+    }
+    st.raw=r;render();
+  }
+  $('pad').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;press(b.dataset.k||b.textContent)});
+  $('chips').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;st.raw=b.dataset.v;render()});
+  $('swap').addEventListener('click',function(){
+    var v=parseFloat(st.raw||'0')||0,cop=st.dir==='cop';
+    var r=cop?v/st.rate:v*st.rate;
+    st.dir=cop?'usd':'cop';
+    st.raw=r?(cop?String(Math.round(r*100)/100):String(Math.round(r))):'';
+    save();render();
+  });
+  var hintT;
+  $('outRow').addEventListener('click',function(){
+    var t=$('outAmt').textContent.replace(/[^\d,]/g,'');
+    var ok=function(){$('hint').textContent='Copiado: '+t;clearTimeout(hintT);hintT=setTimeout(function(){$('hint').textContent='Toca el resultado para copiarlo'},1600)};
+    try{navigator.clipboard.writeText(t).then(ok,function(){$('hint').textContent='No se pudo copiar'})}catch(e){$('hint').textContent='No se pudo copiar'}
+  });
+  $('rateBtn').addEventListener('click',function(){$('rateIn').value=String(st.rate).replace('.',',');$('sheet').hidden=false;setTimeout(function(){$('rateIn').focus();$('rateIn').select()},50)});
+  $('cancel').addEventListener('click',function(){$('sheet').hidden=true});
+  $('sheet').addEventListener('click',function(e){if(e.target===this)this.hidden=true});
+  function saveRate(){
+    var t=$('rateIn').value.trim().replace(/\s/g,'');
+    // "4.123,45" → 4123.45 ; "4123,45" → 4123.45 ; "4.123" → 4123 ; "4123.5" → 4123.5
+    if(t.indexOf(',')>=0)t=t.replace(/\./g,'').replace(',','.');
+    else if(/^\d{1,3}(\.\d{3})+$/.test(t))t=t.replace(/\./g,'');
+    var n=parseFloat(t);
+    if(!(n>0)){$('rateIn').style.borderColor='#c0392b';return}
+    $('rateIn').style.borderColor='';
+    st.rate=n;save();$('sheet').hidden=true;render();
+  }
+  $('save').addEventListener('click',saveRate);
+  $('rateIn').addEventListener('keydown',function(e){if(e.key==='Enter')saveRate()});
+  document.addEventListener('keydown',function(e){
+    if(!$('sheet').hidden)return;
+    if(/^\d$/.test(e.key))press(e.key);else if(e.key===','||e.key==='.')press('dec');
+    else if(e.key==='Backspace')press('del');else if(e.key==='Escape')press('clr');
+  });
+  render();
+  if('serviceWorker' in navigator&&location.protocol==='https:'&&document.querySelector('link[rel=manifest]')){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  }
+})();
+</script>
+
+</body></html>
