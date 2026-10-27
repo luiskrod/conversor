@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -25,9 +25,10 @@
   --bg:#0e1514; --surface:#16201e; --ink:#e8efec; --muted:#93a29e; --line:#26332f;
   --accent:#3fbfa9; --accent-ink:#06211d; --key:#1d2926; --key-press:#2a3a36; color-scheme:dark}
 html,body{height:100%}
+*{touch-action:manipulation}
 body{background:var(--bg);color:var(--ink);font-family:var(--ui);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
-  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .app{max-width:440px;margin:0 auto;height:100%;display:flex;flex-direction:column;gap:12px;padding-block:12px}
 .rate{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted)}
 .rate button{all:unset;cursor:pointer;display:flex;align-items:baseline;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink)}
@@ -188,3 +189,5 @@ body{background:var(--bg);color:var(--ink);font-family:var(--ui);
 </script>
 
 </body></html>
+<script>document.addEventListener('dblclick',function(e){e.preventDefault()},{passive:false});
+var lt=0;document.addEventListener('touchend',function(e){var n=Date.now();if(n-lt<350&&!e.target.closest('input'))e.preventDefault();lt=n},{passive:false});</script>
